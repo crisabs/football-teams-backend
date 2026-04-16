@@ -1,0 +1,54 @@
+services:
+  football-teams-backend:
+    image: football-teams-backend:1.0.0
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: football-teams-backend  
+    command: ["bash","entrypoint.sh"]
+    volumes:
+      - ./:/workspace
+      - logs_django:/var/log/django
+    working_dir: /workspace  
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env.dev
+    secrets:
+      - pg_user
+      - pg_password
+      - pg_db
+      - django_secret_key
+    depends_on:
+      - football-teams-postgres-db
+
+  football-teams-postgres-db:
+    image: postgres:16
+    container_name: football-teams-postgres-db
+    restart: always
+    environment:
+      POSTGRES_DB_FILE: /run/secrets/pg_db
+      POSTGRES_USER_FILE: /run/secrets/pg_user
+      POSTGRES_PASSWORD_FILE: /run/secrets/pg_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    secrets:
+      - pg_user
+      - pg_password
+      - pg_db
+
+secrets:
+  pg_user:
+    file: ./config_secrets/pg_user.txt
+  pg_password:
+    file: ./config_secrets/pg_password.txt
+  pg_db:
+    file: ./config_secrets/pg_db.txt
+  django_secret_key:
+    file: ./config_secrets/django_secret_key.txt
+
+volumes:
+  postgres_data:
+  logs_django:  
