@@ -12,30 +12,30 @@ class UserNotFoundError(AppException):
     default_detail = "User not found"
 
 
-class FisherNotFoundError(AppException):
+class PlayerNotFoundError(AppException):
     status_code = status.HTTP_404_NOT_FOUND
-    default_code = "FISHER_NOT_FOUND"
-    default_detail = "The authenticated user has no fisher profile."
+    default_code = "PLAYER_NOT_FOUND"
+    default_detail = "The authenticated user has no player profile."
 
 
-class FisherFishNotFoundError(AppException):
+class PlayerTeamNotFoundError(AppException):
     status_code = status.HTTP_404_NOT_FOUND
-    default_code = "FISHER_FISH_NOT_FOUND"
+    default_code = "PLAYER_TEAM_NOT_FOUND"
     default_detail = (
-        "The authenticated user has no fish associated according to the request"
+        "The authenticated user has no team associated according to the request"
     )
 
 
-class FisherItemNotFoundError(AppException):
-    default_code = "FISHER_ITEM_NOT_FOUND"
+class PlayerItemNotFoundError(AppException):
+    default_code = "PLAYER_ITEM_NOT_FOUND"
     default_detail = (
         "The authenticated user has no item associated according to the request"
     )
 
 
-class FishNotFoundError(AppException):
-    default_code = "FISH_NOT_FOUND"
-    default_detail = "Fish not found"
+class TeamNotFoundError(AppException):
+    default_code = "TEAM_NOT_FOUND"
+    default_detail = "Team not found"
 
 
 class ItemStoreNotFoundError(AppException):

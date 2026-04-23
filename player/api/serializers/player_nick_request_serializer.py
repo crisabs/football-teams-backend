@@ -4,7 +4,7 @@ from django.core.validators import RegexValidator
 
 class PlayerNickRequestSerializer(serializers.Serializer):
     new_nickname = serializers.CharField(
-        max_length=15,
+        max_length=40,
         validators=[
             RegexValidator(
                 regex=r"^[A-Za-z0-9_]+$",
