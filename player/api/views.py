@@ -45,7 +45,7 @@ class PlayerNickAPIView(GenericAPIView):
     def patch(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        new_nickname = serializer.validated_data["nickname"]
+        new_nickname = serializer.validated_data["new_nickname"]
 
         result = set_player_nickname(user=request.user, new_nickname=new_nickname)
         response_serializer = PlayerNickResponseSerializer(result)
