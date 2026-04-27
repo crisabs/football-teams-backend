@@ -62,7 +62,7 @@ INSTALLED_APPS = [
     "accounts",
     "player",
     "achievement",
-    # "team",
+    "team",
     # "inventory",
     # "store",
     # "match",
