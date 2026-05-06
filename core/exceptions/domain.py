@@ -18,6 +18,12 @@ class PlayerNotFoundError(AppException):
     default_detail = "The authenticated user has no player profile."
 
 
+class PlayerWithoutPermission(AppException):
+    status_code = status.HTTP_401_UNAUTHORIZED
+    default_code = "PLAYER_UNAUTHORIZED"
+    default_detail = "The authenticated user has no enough permissions for this action."
+
+
 class PlayerTeamNotFoundError(AppException):
     status_code = status.HTTP_404_NOT_FOUND
     default_code = "PLAYER_TEAM_NOT_FOUND"
