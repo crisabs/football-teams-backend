@@ -2,7 +2,12 @@ from rest_framework import serializers
 
 
 class TeamResponseSerializer(serializers.Serializer):
-    team = serializers.CharField()
+    name = serializers.CharField()
+    nickname = serializers.CharField()
+    role = serializers.CharField()
+    slogan = serializers.CharField()
+    city = serializers.CharField()
+    country = serializers.CharField()
 
 
 class AchievementResponseSerializer(serializers.Serializer):
