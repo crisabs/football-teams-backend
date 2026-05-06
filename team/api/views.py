@@ -4,8 +4,36 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.exceptions import NotFound
 from drf_spectacular.utils import extend_schema
-from core.exceptions.domain import PlayerNotFoundError
-from team.domain.services.team_service import create_team_service
+from core.exceptions.bd import RepositoryError
+from core.exceptions.domain import (
+    PlayerNotFoundError,
+    PlayerWithoutPermission,
+    TeamNotFoundError,
+)
+from team.api.serializers.team_detail_request_serializer import (
+    TeamDetailRequestSerializer,
+)
+from team.api.serializers.team_join_request_serializer import TeamJoinRequestSerializer
+from team.api.serializers.team_leave_request_serializer import (
+    TeamLeaveRequestSerializer,
+)
+from team.api.serializers.team_leave_response_serializer import (
+    TeamLeaveResponseSerializer,
+)
+from team.api.serializers.team_request_list_request_serializer import (
+    TeamRequestListRequestSerializer,
+)
+from team.api.serializers.team_request_list_response_serializer import (
+    TeamRequestListResponseSerializer,
+)
+from team.domain.services.team_service import (
+    create_team_service,
+    get_team_details_service,
+    join_request_into_team,
+    team_join_request_list_service,
+    team_leave_service,
+    team_accept_join_request_service,
+)
 from team.api.serializers.team_create_request_serializer import (
     TeamCreateRequestSerializer,
 )
@@ -31,3 +59,163 @@ class TeamCreateAPIView(generics.GenericAPIView):
         except PlayerNotFoundError as exc:
             raise NotFound(detail=str(exc)) from exc
         return Response(result, status=status.HTTP_201_CREATED)
+
+
+class TeamDetailAPIView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = TeamDetailRequestSerializer
+
+    @extend_schema(request=TeamDetailRequestSerializer)
+    def get(self, request, *args, **kwargs):
+        try:
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            result = get_team_details_service(
+                team_name=serializer.validated_data["team_name"]
+            )
+            return Response(result, status=status.HTTP_200_OK)
+        except TeamNotFoundError as exc:
+            raise NotFound(detail=str(exc)) from exc
+
+
+class TeamListAPIView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        return Response({"message": "Team list endpoint"}, status=status.HTTP_200_OK)
+
+
+class TeamJoinRequestAPIView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = TeamJoinRequestSerializer
+
+    @extend_schema(request=TeamJoinRequestSerializer)
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            result = join_request_into_team(
+                user=request.user, team_name=serializer.validated_data["team_name"]
+            )
+            return Response(result, status=status.HTTP_200_OK)
+        except TeamNotFoundError as exc:
+            raise NotFound(detail=str(exc)) from exc
+        except PlayerNotFoundError as exc:
+            raise NotFound(detail=str(exc)) from exc
+
+
+class TeamJoinRequestListAPIView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = TeamRequestListRequestSerializer
+
+    @extend_schema(
+        request=TeamRequestListRequestSerializer,
+        responses=TeamRequestListResponseSerializer,
+    )
+    def get(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        result = {
+            "list": team_join_request_list_service(
+                user=request.user, team_name=serializer.validated_data["team_name"]
+            )
+        }
+
+        response_serializer = TeamRequestListResponseSerializer(result)
+
+        try:
+            return Response(response_serializer.data, status=status.HTTP_200_OK)
+        except PlayerNotFoundError:
+            raise
+        except RepositoryError:
+            raise
+        except PlayerWithoutPermission:
+            raise
+
+
+class TeamLeaveAPIView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = TeamLeaveRequestSerializer
+
+    @extend_schema(
+        request=TeamLeaveRequestSerializer, responses=TeamLeaveResponseSerializer
+    )
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            result = team_leave_service(
+                user=request.user, team_name=serializer.validated_data["team_name"]
+            )
+            response_serializer = TeamLeaveResponseSerializer(result)
+            return Response(response_serializer.data, status=status.HTTP_200_OK)
+        except PlayerNotFoundError:
+            raise
+        except TeamNotFoundError:
+            raise
+
+
+class TeamAcceptPlayerJoinRequestAPIView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        result = team_accept_join_request_service(
+            user=request.user,
+            player_request_name=request.data.get("player_request_name"),
+            team_name=request.data.get("team_name"),
+        )
+        return Response(result, status=status.HTTP_200_OK)
+
+
+class TeamDeleteAPIView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, *args, **kwargs):
+        result = team_leave_service(user=request.user, team_name=request["team_name"])
+        return Response(result, status=status.HTTP_200_OK)
+
+
+class TeamFollowAPIView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        return Response({"message": "Team follow endpoint"}, status=status.HTTP_200_OK)
+
+
+class TeamUnfollowAPIView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        return Response(
+            {"message": "Team unfollow endpoint"}, status=status.HTTP_200_OK
+        )
+
+
+class TeamMembersAPIView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        return Response({"message": "Team members endpoint"}, status=status.HTTP_200_OK)
+
+
+class TeamAchievementsAPIView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        return Response(
+            {"message": "Team achievements endpoint"}, status=status.HTTP_200_OK
+        )
+
+
+class TeamEventsAPIView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        return Response({"message": "Team events endpoint"}, status=status.HTTP_200_OK)
+
+
+class TeamStatsAPIView(generics.GenericAPIView):
+    pass
