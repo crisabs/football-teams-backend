@@ -85,6 +85,13 @@ def team_leave_service(user, team_name):
 
 
 def team_accept_join_request_service(user, player_request_name, team_name):
-    return team_accept_join_request_repository(
-        user=user, player_request_name=player_request_name, team_name=team_name
-    )
+    try:
+        return team_accept_join_request_repository(
+            user=user, player_request_name=player_request_name, team_name=team_name
+        )
+    except RepositoryError:
+        raise
+    except TeamNotFoundError:
+        raise
+    except PlayerNotFoundError:
+        raise
