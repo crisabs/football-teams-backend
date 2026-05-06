@@ -10,6 +10,12 @@ from core.exceptions.domain import (
     PlayerWithoutPermission,
     TeamNotFoundError,
 )
+from team.api.serializers.team_accept_player_request_serializer import (
+    TeamAcceptPlayerRequestSerializer,
+)
+from team.api.serializers.team_accept_player_response_serializer import (
+    TeamAcceptPlayerResponseSerializer,
+)
 from team.api.serializers.team_detail_request_serializer import (
     TeamDetailRequestSerializer,
 )
@@ -161,13 +167,33 @@ class TeamLeaveAPIView(generics.GenericAPIView):
 class TeamAcceptPlayerJoinRequestAPIView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
 
+    serializer_class = TeamAcceptPlayerRequestSerializer
+
+    @extend_schema(
+        request=TeamAcceptPlayerRequestSerializer,
+        responses=TeamAcceptPlayerResponseSerializer,
+    )
     def post(self, request, *args, **kwargs):
-        result = team_accept_join_request_service(
-            user=request.user,
-            player_request_name=request.data.get("player_request_name"),
-            team_name=request.data.get("team_name"),
-        )
-        return Response(result, status=status.HTTP_200_OK)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            result = {
+                "message": team_accept_join_request_service(
+                    user=request.user,
+                    player_request_name=serializer.validated_data[
+                        "player_request_name"
+                    ],
+                    team_name=serializer.validated_data["team_name"],
+                )
+            }
+
+            response_serializer = TeamAcceptPlayerResponseSerializer(result)
+
+            return Response(response_serializer.data, status=status.HTTP_200_OK)
+        except PlayerNotFoundError:
+            raise
+        except TeamNotFoundError:
+            raise
 
 
 class TeamDeleteAPIView(generics.GenericAPIView):

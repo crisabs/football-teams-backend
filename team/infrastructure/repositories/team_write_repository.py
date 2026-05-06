@@ -106,6 +106,4 @@ def team_accept_join_request_repository(user, player_request_name, team_name):
     except Team.DoesNotExist as exc:
         raise TeamNotFoundError from exc
     except Player.DoesNotExist as exc:
-        raise PlayerNotFoundError(
-            f"my_player {my_player.nickname} player_request_name {player_request_name}"
-        ) from exc
+        raise PlayerNotFoundError from exc
