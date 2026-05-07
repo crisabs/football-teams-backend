@@ -1,6 +1,7 @@
 from core.exceptions.bd import RepositoryError
 from core.exceptions.domain import (
     PlayerNotFoundError,
+    PlayerTeamNotFoundError,
     TeamNotFoundError,
     PlayerWithoutPermission,
 )
@@ -9,6 +10,7 @@ from team.infrastructure.repositories.team_write_repository import (
     join_request_into_team_repository,
     team_leave_repository,
     team_accept_join_request_repository,
+    team_delete_repository,
 )
 from team.infrastructure.repositories.team_read_repository import (
     get_team_details_service_repository,
@@ -94,4 +96,19 @@ def team_accept_join_request_service(user, player_request_name, team_name):
     except TeamNotFoundError:
         raise
     except PlayerNotFoundError:
+        raise
+
+
+def team_delete_service(user, team_name):
+    try:
+        result = team_delete_repository(user=user, team_name=team_name)
+        return result
+
+    except PlayerNotFoundError:
+        raise
+    except TeamNotFoundError:
+        raise
+    except PlayerTeamNotFoundError:
+        raise
+    except RepositoryError:
         raise
