@@ -6,6 +6,7 @@ from team.api.views import (
     TeamJoinRequestListAPIView,
     TeamLeaveAPIView,
     TeamAcceptPlayerJoinRequestAPIView,
+    TeamDeleteAPIView,
 )
 
 app_name = "team"
@@ -30,5 +31,10 @@ urlpatterns = [
         "team-accept-join-request/",
         TeamAcceptPlayerJoinRequestAPIView.as_view(),
         name="team_accept_join_request",
+    ),
+    path(
+        "team-delete/",
+        TeamDeleteAPIView.as_view(),
+        name="team_delete",
     ),
 ]

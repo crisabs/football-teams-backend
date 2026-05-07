@@ -107,3 +107,31 @@ def team_accept_join_request_repository(user, player_request_name, team_name):
         raise TeamNotFoundError from exc
     except Player.DoesNotExist as exc:
         raise PlayerNotFoundError from exc
+
+
+def team_delete_repository(user, team_name):
+    """
+    GIVEN a user with a Player profile and a PlayerTeam profile for the team
+    WHEN user has ADMIN role and a team_name
+    THEN delete the team
+    """
+    try:
+        my_player = Player.objects.get(user=user)
+        team = Team.objects.get(name=team_name)
+        my_player_on_team = PlayerTeam.objects.get(player=my_player, team=team)
+
+        if not my_player_on_team.role == "ADMIN":
+            return "Current player has not the permissions for this action"
+
+        with transaction.atomic():
+            team.delete()
+            return f"{team_name} deleted"
+
+    except Player.DoesNotExist as exc:
+        raise PlayerNotFoundError from exc
+    except Team.DoesNotExist as exc:
+        raise TeamNotFoundError from exc
+    except PlayerTeam.DoesNotExist as exc:
+        raise PlayerTeamNotFoundError from exc
+    except DatabaseError as exc:
+        raise RepositoryError from exc
