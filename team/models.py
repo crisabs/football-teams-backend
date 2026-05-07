@@ -13,6 +13,7 @@ class Team(models.Model):
         Player, through="PlayerTeam", related_name="teams", blank=True
     )
 
+    followers = models.IntegerField(default=0, blank=True)
     founder = models.ForeignKey(
         Player,
         on_delete=models.SET_NULL,

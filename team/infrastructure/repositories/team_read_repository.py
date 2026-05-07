@@ -23,7 +23,7 @@ def get_team_details_service_repository(team_name):
             "city": team.city,
             "country": team.country,
             "foundation_date": team.foundation_date,
-            # "followers_count": team.,
+            "followers_count": team.followers,
             "players": [player.user.nickname for player in team.players.all()],
         }
     except DatabaseError as exc:
