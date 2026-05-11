@@ -1,8 +1,8 @@
 from rest_framework import serializers
 
-
-class PlayerTeamDetail(serializers.Serializer):
-    player_name = serializers.CharField()
+"""class PlayerTeamDetail(serializers.Serializer):
+    players = serializers.CharField()
+"""
 
 
 class TeamDetailResponseSerializer(serializers.Serializer):
@@ -12,5 +12,5 @@ class TeamDetailResponseSerializer(serializers.Serializer):
     city = serializers.CharField()
     country = serializers.CharField()
     foundation_date = serializers.CharField()
-    followers_count = serializers.IntegerField()
-    players = PlayerTeamDetail(many=True)
+    qty_followers = serializers.IntegerField()
+    players = serializers.CharField()

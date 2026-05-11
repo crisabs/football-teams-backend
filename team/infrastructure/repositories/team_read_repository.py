@@ -16,6 +16,9 @@ logger = logging.getLogger(__name__)
 def get_team_details_service_repository(team_name):
     try:
         team = Team.objects.get(name=team_name)
+        followers_qty = PlayerTeam.objects.filter(
+            team=team, roles__name="FOLLOWER"
+        ).count()
         return {
             "name": team.name,
             "nickname": team.nickname,
@@ -23,8 +26,8 @@ def get_team_details_service_repository(team_name):
             "city": team.city,
             "country": team.country,
             "foundation_date": team.foundation_date,
-            "followers_count": team.followers,
-            "players": [player.user.nickname for player in team.players.all()],
+            "qty_followers": followers_qty,
+            "players": [player.nickname for player in team.players.all()],
         }
     except DatabaseError as exc:
         raise RepositoryError from exc
