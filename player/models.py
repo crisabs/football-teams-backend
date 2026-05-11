@@ -10,6 +10,9 @@ class Player(models.Model):
     level = models.IntegerField(default=1)
     experience = models.IntegerField(default=0)
     coins = models.IntegerField(default=0)
+    followed_teams = models.ManyToManyField(
+        "team.Team", related_name="followers", blank=True
+    )
     profile_image = models.ImageField(
         upload_to="profile_images/", null=True, blank=True
     )

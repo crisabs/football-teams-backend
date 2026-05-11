@@ -18,7 +18,7 @@ def get_player_me_details_repository(user):
                 {
                     "name": playerTeam.team.name,
                     "nickname": playerTeam.team.nickname,
-                    "role": playerTeam.role,
+                    "role": playerTeam.roles.name,
                     "slogan": playerTeam.team.slogan,
                     "city": playerTeam.team.city,
                     "country": playerTeam.team.country,
