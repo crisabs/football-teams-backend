@@ -1,5 +1,4 @@
 from django.db import models
-from player.models import Player
 
 
 class Team(models.Model):
@@ -10,24 +9,31 @@ class Team(models.Model):
     city = models.CharField(max_length=50)
     country = models.CharField(max_length=50)
     players = models.ManyToManyField(
-        Player, through="PlayerTeam", related_name="teams", blank=True
+        "player.Player", through="PlayerTeam", related_name="teams", blank=True
     )
 
-    followers = models.IntegerField(default=0, blank=True)
+    qty_followers = models.IntegerField(default=0, blank=True)
     founder = models.ForeignKey(
-        Player,
+        "player.Player",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name="founded_teams",
     )
     owner = models.ForeignKey(
-        Player,
+        "player.Player",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name="owned_teams",
     )
+
+    def __str__(self):
+        return self.name
+
+
+class Role(models.Model):
+    name = models.CharField(max_length=50, unique=True)
 
     def __str__(self):
         return self.name
@@ -47,26 +53,24 @@ class PlayerProposalStatus(models.TextChoices):
 
 class PlayerTeam(models.Model):
     player = models.ForeignKey(
-        Player, on_delete=models.CASCADE, related_name="memberships"
+        "player.Player", on_delete=models.CASCADE, related_name="memberships"
     )
     team = models.ForeignKey("Team", on_delete=models.CASCADE, related_name="members")
     membership_date = models.DateField(auto_now_add=True)
     matches_played = models.IntegerField(default=0)
     goals_scored = models.IntegerField(default=0)
-    role = models.CharField(
-        max_length=20, choices=PlayerTeamRole.choices, default=PlayerTeamRole.FOLLOWER
-    )
+    roles = models.ManyToManyField("Role", blank=True)
 
     class Meta:
         unique_together = ("player", "team")
 
     def __str__(self):
-        return f"{self.player.nickname} in {self.team.name} as {self.role}"
+        return f"{self.player.nickname} in {self.team.name} as {', '.join(str(role) for role in self.roles.all())}"
 
 
 class PlayerProposalTeam(models.Model):
     player = models.ForeignKey(
-        Player, on_delete=models.CASCADE, related_name="proposals"
+        "player.Player", on_delete=models.CASCADE, related_name="proposals"
     )
     team = models.ForeignKey("Team", on_delete=models.CASCADE, related_name="proposals")
     role = models.CharField(

@@ -5,10 +5,14 @@ from core.exceptions.domain import (
     PlayerTeamNotFoundError,
     TeamNotFoundError,
 )
-from team.models import Team
+from team.models import PlayerTeamRole, Team, Role
 from player.models import Player
 from team.models import PlayerProposalTeam
 from team.models import PlayerTeam
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def create_team_service_repository(
@@ -118,9 +122,9 @@ def team_delete_repository(user, team_name):
     try:
         my_player = Player.objects.get(user=user)
         team = Team.objects.get(name=team_name)
-        my_player_on_team = PlayerTeam.objects.get(player=my_player, team=team)
+        membership = PlayerTeam.objects.get(player=my_player, team=team)
 
-        if not my_player_on_team.role == "ADMIN":
+        if not membership.roles == "ADMIN":
             return "Current player has not the permissions for this action"
 
         with transaction.atomic():
@@ -133,5 +137,44 @@ def team_delete_repository(user, team_name):
         raise TeamNotFoundError from exc
     except PlayerTeam.DoesNotExist as exc:
         raise PlayerTeamNotFoundError from exc
+    except DatabaseError as exc:
+        raise RepositoryError from exc
+
+
+def team_follow_repository(user, team_name):
+    """
+
+    GIVEN a user with a Player profile and a team_name
+    WHEN user is not already following the team
+    THEN add the team to the player's followed teams"""
+    try:
+        player = Player.objects.get(user=user)
+        team = Team.objects.get(name=team_name)
+
+        logger.debug(f"Attempting to follow team: {team_name}")
+
+        membership = PlayerTeam.objects.filter(player=player, team=team).first()
+
+        logger.debug(f"Existing player-team relationship: {membership}")
+
+        if membership:
+            raise RepositoryError("Player is already following the team")
+
+        with transaction.atomic():
+            follower_role = Role.objects.get(name=PlayerTeamRole.FOLLOWER)
+
+            membership = PlayerTeam.objects.create(player=player, team=team)
+
+            membership.roles.add(follower_role)
+
+            team.qty_followers += 1
+            team.save(update_fields=["qty_followers"])
+        return {"message": f"You are now following {team_name} team"}
+    except Player.DoesNotExist as exc:
+        raise PlayerNotFoundError from exc
+    except Team.DoesNotExist as exc:
+        raise TeamNotFoundError from exc
+    except RepositoryError as exc:
+        raise RepositoryError from exc
     except DatabaseError as exc:
         raise RepositoryError from exc

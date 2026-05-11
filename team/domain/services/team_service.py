@@ -8,6 +8,7 @@ from core.exceptions.domain import (
 from team.infrastructure.repositories.team_write_repository import (
     create_team_service_repository,
     join_request_into_team_repository,
+    team_follow_repository,
     team_leave_repository,
     team_accept_join_request_repository,
     team_delete_repository,
@@ -43,6 +44,7 @@ def create_team_service(
 
 def get_team_details_service(team_name):
     try:
+        logger.info(f"Getting details for team {team_name}")
         return get_team_details_service_repository(team_name=team_name)
     except TeamNotFoundError:
         logger.exception(TeamNotFoundError.default_detail)
@@ -112,3 +114,7 @@ def team_delete_service(user, team_name):
         raise
     except RepositoryError:
         raise
+
+
+def team_follow_service(user, team_name):
+    return team_follow_repository(user=user, team_name=team_name)
