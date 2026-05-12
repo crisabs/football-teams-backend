@@ -1,5 +1,5 @@
 from player.models import Player
-from team.models import Team, PlayerTeam, PlayerProposalTeam
+from team.models import Role, Team, PlayerTeam, PlayerProposalTeam
 from core.exceptions.domain import (
     PlayerNotFoundError,
     TeamNotFoundError,
@@ -39,26 +39,40 @@ def team_join_request_list_repository(user, team_name):
     try:
 
         player = Player.objects.get(user=user)
-        player_team = PlayerTeam.objects.get(player=player)
-
+        logger.debug(
+            f"Player {player.nickname} is requesting join request list for team {team_name}"
+        )
         team = Team.objects.get(name=team_name)
 
-        player_team_role = player_team.role
+        player_team = PlayerTeam.objects.get(player=player, team=team)
+        logger.debug(f"Player {player.nickname} is a member of team {player_team.team}")
+
+        player_team_role = (
+            Role.objects.filter(playerteam=player_team)
+            .values_list("name", flat=True)
+            .first()
+        )
         player_proposals = PlayerProposalTeam.objects.filter(team=team)
         logger.debug(
             f"Player {player.nickname} has role {player_team_role} in team {player_team.team}"
         )
-        if player_team_role == "ADMIN":
-            return [
-                {
-                    "player": proposal.player.nickname,
-                    "team": proposal.team.name,
-                    "role": proposal.role,
-                    "proposal_date": proposal.proposal_date,
-                    "proposal_message": proposal.proposal_message,
-                }
-                for proposal in player_proposals.all()
-            ]
+        if player_team_role != "ADMIN":
+            logger.warning(
+                f"Player {player.nickname} does not have permission to join requests for team {team.name}"
+            )
+            raise PlayerWithoutPermission(
+                "You do not have permission to view join requests for this team"
+            )
+        return [
+            {
+                "player": proposal.player.nickname,
+                "team": proposal.team.name,
+                "role": proposal.role,
+                "proposal_date": proposal.proposal_date,
+                "proposal_message": proposal.proposal_message,
+            }
+            for proposal in player_proposals.all()
+        ]
     except Player.DoesNotExist as exc:
         raise PlayerNotFoundError from exc
     except IntegrityError as exc:
