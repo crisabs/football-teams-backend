@@ -45,6 +45,12 @@ from team.api.serializers.team_leave_response_serializer import (
 from team.api.serializers.team_request_list_request_serializer import (
     TeamRequestListRequestSerializer,
 )
+from team.api.serializers.team_unfollow_request_serializer import (
+    UnfollowTeamRequestSerializer,
+)
+from team.api.serializers.team_unfollow_response_serializer import (
+    UnfollowTeamResponseSerializer,
+)
 from team.api.serializers.team_request_list_response_serializer import (
     TeamRequestListResponseSerializer,
 )
@@ -265,9 +271,17 @@ class TeamFollowAPIView(generics.GenericAPIView):
 
 class TeamUnfollowAPIView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = UnfollowTeamRequestSerializer
 
+    @extend_schema(
+        request=UnfollowTeamRequestSerializer, responses=UnfollowTeamResponseSerializer
+    )
     def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
         result = team_unfollow_service(
-            user=request.user, team_name=request.data.get("team_name")
+            user=request.user, team_name=serializer.validated_data["team_name"]
         )
-        return Response(result, status=status.HTTP_200_OK)
+        response_serializer = UnfollowTeamResponseSerializer(result)
+        return Response(response_serializer.data, status=status.HTTP_200_OK)
