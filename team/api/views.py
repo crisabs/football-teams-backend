@@ -23,11 +23,17 @@ from team.api.serializers.team_delete_request_serializer import (
 from team.api.serializers.team_delete_response_serializer import (
     TeamDeleteResponseSerializer,
 )
+from team.api.serializers.team_follow_request_serializer import (
+    TeamFollowRequestSerializer,
+)
 from team.api.serializers.team_detail_request_serializer import (
     TeamDetailRequestSerializer,
 )
 from team.api.serializers.team_detail_response_serializer import (
     TeamDetailResponseSerializer,
+)
+from team.api.serializers.team_follow_response_serializer import (
+    TeamFollowResponseSerializer,
 )
 from team.api.serializers.team_join_request_serializer import TeamJoinRequestSerializer
 from team.api.serializers.team_leave_request_serializer import (
@@ -50,6 +56,8 @@ from team.domain.services.team_service import (
     team_leave_service,
     team_accept_join_request_service,
     team_delete_service,
+    team_follow_service,
+    team_unfollow_service,
 )
 from team.api.serializers.team_create_request_serializer import (
     TeamCreateRequestSerializer,
@@ -237,42 +245,29 @@ class TeamDeleteAPIView(generics.GenericAPIView):
 
 class TeamFollowAPIView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = TeamFollowRequestSerializer
 
+    @extend_schema(
+        request=TeamFollowRequestSerializer, responses=TeamFollowResponseSerializer
+    )
     def post(self, request, *args, **kwargs):
-        return Response({"message": "Team follow endpoint"}, status=status.HTTP_200_OK)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        result = team_follow_service(
+            user=request.user, team_name=serializer.validated_data["team_name"]
+        )
+
+        response_serializer = TeamFollowResponseSerializer(result)
+
+        return Response(response_serializer.data, status=status.HTTP_200_OK)
 
 
 class TeamUnfollowAPIView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
-        return Response(
-            {"message": "Team unfollow endpoint"}, status=status.HTTP_200_OK
+        result = team_unfollow_service(
+            user=request.user, team_name=request.data.get("team_name")
         )
-
-
-class TeamMembersAPIView(generics.GenericAPIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request, *args, **kwargs):
-        return Response({"message": "Team members endpoint"}, status=status.HTTP_200_OK)
-
-
-class TeamAchievementsAPIView(generics.GenericAPIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request, *args, **kwargs):
-        return Response(
-            {"message": "Team achievements endpoint"}, status=status.HTTP_200_OK
-        )
-
-
-class TeamEventsAPIView(generics.GenericAPIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request, *args, **kwargs):
-        return Response({"message": "Team events endpoint"}, status=status.HTTP_200_OK)
-
-
-class TeamStatsAPIView(generics.GenericAPIView):
-    pass
+        return Response(result, status=status.HTTP_200_OK)
