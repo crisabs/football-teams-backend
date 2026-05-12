@@ -30,9 +30,9 @@ def create_team_service_repository(
                 founder=player,
             )
             team.save()
-            player_team = PlayerTeam.objects.create(
-                player=player, team=team, role="ADMIN"
-            )
+            player_team = PlayerTeam.objects.create(player=player, team=team)
+            admin_role = Role.objects.get(name=PlayerTeamRole.ADMIN)
+            player_team.roles.add(admin_role)
             player_team.save()
 
     except Player.DoesNotExist as exc:
@@ -98,9 +98,9 @@ def team_accept_join_request_repository(user, player_request_name, team_name):
                 raise RepositoryError(
                     f"No join request found for player {player_request_name} in team {team_name}"
                 )
-            playerTeam = PlayerTeam.objects.create(
-                player=player_request, team=team, role="PLAYER"
-            )
+            playerTeam = PlayerTeam.objects.create(player=player_request, team=team)
+            player_role = Role.objects.get(name=PlayerTeamRole.PLAYER)
+            playerTeam.roles.add(player_role)
             playerTeam.save()
             PlayerProposalTeam.objects.filter(player=player_request, team=team).delete()
 
@@ -124,7 +124,7 @@ def team_delete_repository(user, team_name):
         team = Team.objects.get(name=team_name)
         membership = PlayerTeam.objects.get(player=my_player, team=team)
 
-        if not membership.roles == "ADMIN":
+        if not membership.roles.filter(name="ADMIN").exists():
             return "Current player has not the permissions for this action"
 
         with transaction.atomic():

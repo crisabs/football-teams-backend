@@ -2,13 +2,14 @@ from core.exceptions.domain import PlayerNotFoundError
 from player.models import Player
 from django.db import DatabaseError
 
-from team.models import PlayerTeam
+from team.models import PlayerTeam, Role
 
 
 def get_player_me_details_repository(user):
     try:
         player = Player.objects.get(user=user)
         playerTeam = PlayerTeam.objects.filter(player=player).select_related("team")
+        playerRole = Role.objects.filter(playerteam__player=player).first()
         return {
             "nickname": player.nickname,
             "level": player.level,
@@ -18,7 +19,7 @@ def get_player_me_details_repository(user):
                 {
                     "name": playerTeam.team.name,
                     "nickname": playerTeam.team.nickname,
-                    "role": playerTeam.roles.name,
+                    "role": playerRole.name if playerRole else None,
                     "slogan": playerTeam.team.slogan,
                     "city": playerTeam.team.city,
                     "country": playerTeam.team.country,
