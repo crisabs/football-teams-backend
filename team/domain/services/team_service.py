@@ -12,6 +12,7 @@ from team.infrastructure.repositories.team_write_repository import (
     team_leave_repository,
     team_accept_join_request_repository,
     team_delete_repository,
+    team_unfollow_repository,
 )
 from team.infrastructure.repositories.team_read_repository import (
     get_team_details_service_repository,
@@ -85,7 +86,10 @@ def team_join_request_list_service(user, team_name):
 
 
 def team_leave_service(user, team_name):
-    return team_leave_repository(user=user, team_name=team_name)
+    try:
+        return team_leave_repository(user=user, team_name=team_name)
+    except RepositoryError:
+        raise
 
 
 def team_accept_join_request_service(user, player_request_name, team_name):
@@ -117,4 +121,26 @@ def team_delete_service(user, team_name):
 
 
 def team_follow_service(user, team_name):
-    return team_follow_repository(user=user, team_name=team_name)
+    try:
+        return team_follow_repository(user=user, team_name=team_name)
+    except PlayerNotFoundError:
+        raise
+    except TeamNotFoundError:
+        raise
+    except PlayerTeamNotFoundError:
+        raise
+    except RepositoryError:
+        raise
+
+
+def team_unfollow_service(user, team_name):
+    try:
+        return team_unfollow_repository(user=user, team_name=team_name)
+    except PlayerNotFoundError:
+        raise
+    except TeamNotFoundError:
+        raise
+    except PlayerTeamNotFoundError:
+        raise
+    except RepositoryError:
+        raise

@@ -178,3 +178,38 @@ def team_follow_repository(user, team_name):
         raise RepositoryError from exc
     except DatabaseError as exc:
         raise RepositoryError from exc
+
+
+def team_unfollow_repository(user, team_name):
+    """
+    GIVEN a user with a Player profile and a team_name
+    WHEN user is already following the team
+    THEN remove the team from the player's followed teams"""
+    try:
+        player = Player.objects.get(user=user)
+        team = Team.objects.get(name=team_name)
+
+        membership = PlayerTeam.objects.filter(player=player, team=team).first()
+
+        if not membership:
+            raise RepositoryError("Player is not following the team")
+
+        with transaction.atomic():
+            if (
+                membership.roles.filter(name=PlayerTeamRole.FOLLOWER).exists()
+                and not membership.roles.filter(name=PlayerTeamRole.ADMIN).exists()
+                and not membership.roles.filter(name=PlayerTeamRole.PLAYER).exists()
+            ):
+                membership.delete()
+
+            team.qty_followers -= 1
+            team.save(update_fields=["qty_followers"])
+        return {"message": f"You have unfollowed {team_name} team"}
+    except Player.DoesNotExist as exc:
+        raise PlayerNotFoundError from exc
+    except Team.DoesNotExist as exc:
+        raise TeamNotFoundError from exc
+    except RepositoryError as exc:
+        raise RepositoryError from exc
+    except DatabaseError as exc:
+        raise RepositoryError from exc
