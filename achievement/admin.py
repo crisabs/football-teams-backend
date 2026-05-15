@@ -11,8 +11,12 @@ class AchievementAdmin(admin.ModelAdmin):
 class PlayerAchievementAdmin(admin.ModelAdmin):
     list_display = ("player", "achievement_name", "description", "acquired_at")
 
-    list_select_related = ("player", "achievement")
+    list_select_related = ("player",)
 
-    @admin.display(description="Achievement", ordering="achievement__name")
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        return queryset.prefetch_related("achievements")
+
+    @admin.display(description="Achievement", ordering="achievement_name")
     def achievement_name(self, obj):
-        return obj.achievement.name
+        return ", ".join([achievement.name for achievement in obj.achievements.all()])

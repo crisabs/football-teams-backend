@@ -5,7 +5,7 @@ from core.exceptions.bd import RepositoryError
 from core.exceptions.domain import PlayerNotFoundError
 
 
-def add_player_achievement_acquired(user, achievement_code):
+def add_player_achievement_acquired_service(user, achievement_code):
     try:
         add_player_achievement_acquired_repository(
             user=user, achievement_code=achievement_code

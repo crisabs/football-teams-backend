@@ -13,9 +13,8 @@ def add_player_achievement_acquired_repository(user, achievement_code):
             achievement = Achievement.objects.get(code=achievement_code)
             playerAchievement = PlayerAchievement.objects.create(
                 player=player,
-                achievement=achievement,
-                description=achievement.description,
             )
+            playerAchievement.achievements.add(achievement)
             playerAchievement.save()
             return
     except Player.DoesNotExist as exc:
