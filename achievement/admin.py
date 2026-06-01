@@ -9,7 +9,7 @@ class AchievementAdmin(admin.ModelAdmin):
 
 @admin.register(PlayerAchievement)
 class PlayerAchievementAdmin(admin.ModelAdmin):
-    list_display = ("player", "achievement_name", "description", "acquired_at")
+    list_display = ("player", "achievement_name", "acquired_at")
 
     list_select_related = ("player",)
 
