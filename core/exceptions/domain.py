@@ -18,6 +18,12 @@ class PlayerNotFoundError(AppException):
     default_detail = "The authenticated user has no player profile."
 
 
+class PlayerTeamAchievementNotFoundError(AppException):
+    status_code = status.HTTP_404_NOT_FOUND
+    default_code = "PLAYER_TEAM_ACHIEVEMENT_NOT_FOUND"
+    default_detail = "No achievements found for this player and team."
+
+
 class PlayerWithoutPermission(AppException):
     status_code = status.HTTP_401_UNAUTHORIZED
     default_code = "PLAYER_UNAUTHORIZED"

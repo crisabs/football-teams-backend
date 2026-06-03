@@ -25,6 +25,25 @@ class PlayerAchievement(models.Model):
         unique_together = ("player", "achievement")
 
 
+class PlayerTeamAchievement(models.Model):
+    player = models.ForeignKey(
+        Player, on_delete=models.CASCADE, related_name="player_team_achievements"
+    )
+    team = models.ForeignKey(
+        Team, on_delete=models.CASCADE, related_name="player_team_achievements"
+    )
+    achievement = models.ForeignKey(
+        Achievement,
+        on_delete=models.CASCADE,
+        related_name="player_team_achievements",
+    )
+    acquired_at = models.DateTimeField(auto_now_add=True)
+    notes = models.TextField(blank=True)
+
+    class Meta:
+        unique_together = ("player", "team", "achievement")
+
+
 class TeamAchievement(models.Model):
     team = models.ForeignKey(
         Team, on_delete=models.CASCADE, related_name="team_achievements"

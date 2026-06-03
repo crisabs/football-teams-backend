@@ -13,6 +13,9 @@ from achievement.api.serializers.player_achievement_acquired_request_serializer 
 from achievement.api.serializers.player_achievement_acquired_response_serializer import (
     Player_Achievement_Acquired_Response_Serializer,
 )
+from achievement.api.serializers.player_team_achievement_response_serializer import (
+    PlayerTeamAchievementResponseSerializer,
+)
 from achievement.api.serializers.team_achievement_acquired_request_serializer import (
     TeamAchievementAcquiredRequestSerializer,
 )
@@ -22,14 +25,21 @@ from achievement.api.serializers.team_achievement_acquired_response_serializer i
 from achievement.api.serializers.player_achievement_list_request_serializer import (
     PlayerAchievementListRequestSerializer,
 )
+from achievement.api.serializers.player_team_achievement_list_request_serializer import (
+    PlayerTeamAchievementListRequestSerializer,
+)
 from achievement.domain.services.achievement_service import (
     add_player_achievement_acquired_service,
     add_team_achievement_acquired_service,
     player_achievement_list_service,
     player_team_achievement_list_service,
 )
-from core.exceptions.domain import PlayerNotFoundError
+from core.exceptions.domain import PlayerNotFoundError, TeamNotFoundError
 from core.exceptions.bd import RepositoryError
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class PlayerAchievementAcquireView(GenericAPIView):
@@ -93,9 +103,35 @@ class PlayerAchievementListView(GenericAPIView):
             raise NotFound(detail=exc.default_detail)
 
 
+# Shows the achievement list for a player in a specific team
 class PlayerTeamAchievementListView(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = PlayerTeamAchievementListRequestSerializer
+
+    @extend_schema(
+        request=PlayerTeamAchievementListRequestSerializer,
+        responses=PlayerTeamAchievementResponseSerializer,
+    )
     def get(self, request):
-        return Response(status=status.HTTP_200_OK)
+        logger.info("PlayerTeamAchievementListView GET request received")
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        team_name = serializer.validated_data["team_name"]
+        try:
+            result = player_team_achievement_list_service(
+                user=request.user, team_name=team_name
+            )
+
+            response_serializer = PlayerTeamAchievementResponseSerializer(result)
+
+            return Response(response_serializer.data, status=status.HTTP_200_OK)
+        except PlayerNotFoundError:
+            raise
+        except TeamNotFoundError:
+            raise
+        except RepositoryError:
+            raise
 
 
 class TeamAchievementListView(GenericAPIView):

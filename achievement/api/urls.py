@@ -4,9 +4,10 @@ from achievement.api.views import (
     TeamAchievementAcquireView,
     PlayerAchievementListView,
     TeamAchievementListView,
+    PlayerTeamAchievementListView,
 )
 
-app_name = "inventory"
+app_name = "achievement"
 
 urlpatterns = [
     path(
@@ -23,6 +24,11 @@ urlpatterns = [
         "player-achievement-list/",
         PlayerAchievementListView.as_view(),
         name="player_achievement_list",
+    ),
+    path(
+        "player-team-achievement-list/",
+        PlayerTeamAchievementListView.as_view(),
+        name="player_team_achievement_list",
     ),
     path(
         "team-achievement-list/",

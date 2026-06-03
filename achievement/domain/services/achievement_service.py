@@ -3,6 +3,9 @@ from achievement.infrastructure.achievement_write_repository import (
     add_team_achievement_acquired_repository,
     player_achievement_list_repository,
 )
+from achievement.infrastructure.achievement_read_repository import (
+    player_team_achievement_list_repository,
+)
 from core.exceptions.bd import RepositoryError
 from core.exceptions.domain import PlayerNotFoundError, TeamNotFoundError
 
@@ -41,4 +44,11 @@ def player_achievement_list_service(user):
 
 
 def player_team_achievement_list_service(user, team_name):
-    pass
+    try:
+        return player_team_achievement_list_repository(user=user, team_name=team_name)
+    except PlayerNotFoundError:
+        raise
+    except TeamNotFoundError:
+        raise
+    except RepositoryError:
+        raise
