@@ -7,6 +7,14 @@ from rest_framework.exceptions import NotFound
 from achievement.api.serializers.player_achievement_list_response_serializer import (
     PlayerAchievementResponseSerializer,
 )
+
+from achievement.api.serializers.team_achievement_response_serializer import (
+    TeamAchievementResponseSerializer,
+)
+from achievement.api.serializers.team_achievement_request_serializer import (
+    TeamAchievementRequestSerializer,
+)
+
 from achievement.api.serializers.player_achievement_acquired_request_serializer import (
     Player_Achievement_Acquired_Request_Serializer,
 )
@@ -33,6 +41,7 @@ from achievement.domain.services.achievement_service import (
     add_team_achievement_acquired_service,
     player_achievement_list_service,
     player_team_achievement_list_service,
+    team_achievement_list_service,
 )
 from core.exceptions.domain import PlayerNotFoundError, TeamNotFoundError
 from core.exceptions.bd import RepositoryError
@@ -135,5 +144,24 @@ class PlayerTeamAchievementListView(GenericAPIView):
 
 
 class TeamAchievementListView(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+
+    serializer_class = TeamAchievementRequestSerializer
+
+    @extend_schema(
+        responses=TeamAchievementResponseSerializer,
+        request=TeamAchievementRequestSerializer,
+    )
     def get(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        team_name = serializer.validated_data["team_name"]
+        try:
+            result = team_achievement_list_service(team_name=team_name)
+            response_serializer = TeamAchievementResponseSerializer(result)
+            return Response(response_serializer.data, status=status.HTTP_200_OK)
+        except TeamNotFoundError:
+            raise NotFound(detail="Team not found")
+        except RepositoryError:
+            raise NotFound(detail="Error retrieving team achievements")
         return Response(status=status.HTTP_200_OK)
