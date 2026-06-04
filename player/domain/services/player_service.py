@@ -6,6 +6,9 @@ from player.infrastructure.repositories.player_read_repository import (
 from player.infrastructure.repositories.player_write_repository import (
     set_player_nickname_repository,
 )
+from player.infrastructure.repositories.player_write_repository import (
+    player_gain_experience_repository,
+)
 
 import logging
 
@@ -39,3 +42,14 @@ def set_player_nickname(user, new_nickname):
 
 def set_player_profile_image(user, image_id):
     return {"message": "Player profile image updated"}
+
+
+def player_gain_experience_service(user, experience_gain):
+    try:
+        return player_gain_experience_repository(
+            user=user, experience_gain=experience_gain
+        )
+    except PlayerNotFoundError:
+        raise
+    except RepositoryError:
+        raise
