@@ -38,6 +38,7 @@ urlpatterns = [
     path("api/player/", include("player.api.urls")),
     path("api/achievement/", include("achievement.api.urls")),
     path("api/team/", include("team.api.urls")),
+    path("api/store/", include("store.api.urls")),
     # Documentation
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path(
