@@ -1,9 +1,14 @@
 from django.urls import path
-from player.api.views import PlayerMeDetailsAPIView, PlayerNickAPIView
+from player.api.views import (
+    PlayerMeDetailsAPIView,
+    PlayerNickAPIView,
+    PlayerGainExperienceAPIView,
+)
 
 app_name = "player"
 
 urlpatterns = [
     path("me/", PlayerMeDetailsAPIView.as_view(), name="player_me"),
     path("nick/", PlayerNickAPIView.as_view(), name="nick"),
+    path("experience/", PlayerGainExperienceAPIView.as_view(), name="experience"),
 ]
