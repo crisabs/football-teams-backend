@@ -64,7 +64,7 @@ INSTALLED_APPS = [
     "achievement",
     "team",
     # "inventory",
-    # "store",
+    "store",
     # "match",
 ]
 
