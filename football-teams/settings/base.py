@@ -65,7 +65,7 @@ INSTALLED_APPS = [
     "team",
     # "inventory",
     "store",
-    # "match",
+    "match",
 ]
 
 # --- Middleware ---
